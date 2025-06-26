@@ -1,1 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Retro Computer - Interactive Scene</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            overflow: hidden;
+            color: #00ff41;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .ui-overlay h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .controls {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .controls p {
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #00ff41;
+        }
+
+        .loading h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 255, 65, 0.3);
+            border-top: 3px solid #00ff41;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #00ff41;
+            font-size: 0.8rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .ui-overlay {
+                font-size: 0.8rem;
+                padding: 15px;
+            }
+            
+            .stats {
+                font-size: 0.7rem;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container"></div>
+        
+        <div class="ui-overlay">
+            <h1>🖥️ RETRO COMPUTER 3D</h1>
+            <div class="controls">
+                <p>🖱️ <strong>Mouse:</strong> Rotate camera</p>
+                <p>🔄 <strong>Scroll:</strong> Zoom in/out</p>
+                <p>⌨️ <strong>Space:</strong> Auto-rotate</p>
+                <p>💡 <strong>L:</strong> Toggle lighting</p>
+                <p>🎨 <strong>C:</strong> Change colors</p>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <h2>INITIALIZING...</h2>
+            <div class="spinner"></div>
+        </div>
+
+        <div class="stats" id="stats">
+            <div>FPS: <span id="fps">60</span></div>
+            <div>Objects: <span id="objects">0</span></div>
+            <div>Camera: <span id="camera-pos">0, 0, 0</span></div>
+        </div>
+    </div>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        class RetroComputerScene {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.controls = null;
+                this.computer = null;
+                this.desk = null;
+                this.lights = [];
+                this.autoRotate = false;
+                this.colorScheme = 0;
+                this.frameCount = 0;
+                this.lastTime = 0;
+                
+                this.init();
+            }
+
+            init() {
+                this.createScene();
+                this.createCamera();
+                this.createRenderer();
+                this.createControls();
+                this.createLights();
+                this.createDesk();
+                this.createComputer();
+                this.createEnvironment();
+                this.setupEventListeners();
+                this.animate();
+                
+                // Hide loading screen
+                setTimeout(() => {
+                    document.getElementById('loading').classList.add('hidden');
+                }, 1500);
+            }
+
+            createScene() {
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x0a0a0a);
+                this.scene.fog = new THREE.Fog(0x0a0a0a, 10, 50);
+            }
+
+            createCamera() {
+                this.camera = new THREE.PerspectiveCamera(
+                    75,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                this.camera.position.set(5, 3, 5);
+            }
+
+            createRenderer() {
+                this.renderer = new THREE.WebGLRenderer({ 
+                    antialias: true,
+                    alpha: true 
+                });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.outputEncoding = THREE.sRGBEncoding;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.2;
+                
+                document.getElementById('canvas-container').appendChild(this.renderer.domElement);
+            }
+
+            createControls() {
+                this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+                this.controls.minDistance = 3;
+                this.controls.maxDistance = 15;
+                this.controls.maxPolarAngle = Math.PI / 2;
+            }
+
+            createLights() {
+                // Ambient light
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+                this.scene.add(ambientLight);
+                this.lights.push(ambientLight);
+
+                // Main directional light
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(5, 10, 5);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 2048;
+                directionalLight.shadow.mapSize.height = 2048;
+                directionalLight.shadow.camera.near = 0.5;
+                directionalLight.shadow.camera.far = 50;
+                directionalLight.shadow.camera.left = -10;
+                directionalLight.shadow.camera.right = 10;
+                directionalLight.shadow.camera.top = 10;
+                directionalLight.shadow.camera.bottom = -10;
+                this.scene.add(directionalLight);
+                this.lights.push(directionalLight);
+
+                // Accent lights
+                const accentLight1 = new THREE.PointLight(0x00ff41, 0.5, 10);
+                accentLight1.position.set(-3, 2, 3);
+                this.scene.add(accentLight1);
+                this.lights.push(accentLight1);
+
+                const accentLight2 = new THREE.PointLight(0xff4100, 0.3, 8);
+                accentLight2.position.set(3, 1, -2);
+                this.scene.add(accentLight2);
+                this.lights.push(accentLight2);
+            }
+
+            createDesk() {
+                const deskGroup = new THREE.Group();
+
+                // Desk top
+                const deskTopGeometry = new THREE.BoxGeometry(6, 0.2, 4);
+                const deskTopMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x8B4513,
+                    roughness: 0.8 
+                });
+                const deskTop = new THREE.Mesh(deskTopGeometry, deskTopMaterial);
+                deskTop.position.y = 0;
+                deskTop.receiveShadow = true;
+                deskGroup.add(deskTop);
+
+                // Desk legs
+                const legGeometry = new THREE.BoxGeometry(0.2, 2, 0.2);
+                const legMaterial = new THREE.MeshLambertMaterial({ color: 0x654321 });
+                
+                const legPositions = [
+                    [-2.8, -1, 1.8], [2.8, -1, 1.8],
+                    [-2.8, -1, -1.8], [2.8, -1, -1.8]
+                ];
+
+                legPositions.forEach(pos => {
+                    const leg = new THREE.Mesh(legGeometry, legMaterial);
+                    leg.position.set(...pos);
+                    leg.castShadow = true;
+                    deskGroup.add(leg);
+                });
+
+                this.desk = deskGroup;
+                this.scene.add(deskGroup);
+            }
+
+            createComputer() {
+                const computerGroup = new THREE.Group();
+
+                // Monitor base
+                const baseGeometry = new THREE.CylinderGeometry(0.3, 0.4, 0.2, 8);
+                const baseMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xcccccc,
+                    shininess: 30 
+                });
+                const base = new THREE.Mesh(baseGeometry, baseMaterial);
+                base.position.set(0, 0.2, 0);
+                base.castShadow = true;
+                computerGroup.add(base);
+
+                // Monitor stand
+                const standGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.8, 8);
+                const standMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+                const stand = new THREE.Mesh(standGeometry, standMaterial);
+                stand.position.set(0, 0.7, 0);
+                stand.castShadow = true;
+                computerGroup.add(stand);
+
+                // Monitor body
+                const monitorGeometry = new THREE.BoxGeometry(2.5, 2, 2.2);
+                const monitorMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xf0f0f0,
+                    shininess: 20 
+                });
+                const monitor = new THREE.Mesh(monitorGeometry, monitorMaterial);
+                monitor.position.set(0, 1.8, 0);
+                monitor.castShadow = true;
+                computerGroup.add(monitor);
+
+                // Screen
+                const screenGeometry = new THREE.BoxGeometry(2.2, 1.6, 0.1);
+                const screenMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x001100,
+                    emissive: 0x002200,
+                    shininess: 100 
+                });
+                const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+                screen.position.set(0, 1.8, 1.05);
+                computerGroup.add(screen);
+
+                // Screen glow effect
+                const glowGeometry = new THREE.PlaneGeometry(2.4, 1.8);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff41,
+                    transparent: true,
+                    opacity: 0.1,
+                    side: THREE.DoubleSide
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                glow.position.set(0, 1.8, 1.1);
+                computerGroup.add(glow);
+
+                // Keyboard
+                const keyboardGeometry = new THREE.BoxGeometry(1.8, 0.1, 0.6);
+                const keyboardMaterial = new THREE.MeshPhongMaterial({ color: 0xe0e0e0 });
+                const keyboard = new THREE.Mesh(keyboardGeometry, keyboardMaterial);
+                keyboard.position.set(0, 0.15, 1.5);
+                keyboard.castShadow = true;
+                computerGroup.add(keyboard);
+
+                // Keys
+                for (let i = 0; i < 15; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        const keyGeometry = new THREE.BoxGeometry(0.08, 0.02, 0.08);
+                        const keyMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+                        const key = new THREE.Mesh(keyGeometry, keyMaterial);
+                        key.position.set(
+                            -0.7 + (i * 0.1),
+                            0.16,
+                            1.3 + (j * 0.1)
+                        );
+                        computerGroup.add(key);
+                    }
+                }
+
+                // Mouse
+                const mouseGeometry = new THREE.BoxGeometry(0.3, 0.08, 0.5);
+                const mouseMaterial = new THREE.MeshPhongMaterial({ color: 0xdddddd });
+                const mouse = new THREE.Mesh(mouseGeometry, mouseMaterial);
+                mouse.position.set(1.2, 0.14, 1.3);
+                mouse.castShadow = true;
+                computerGroup.add(mouse);
+
+                // CPU Tower
+                const cpuGeometry = new THREE.BoxGeometry(0.8, 1.5, 1.2);
+                const cpuMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+                const cpu = new THREE.Mesh(cpuGeometry, cpuMaterial);
+                cpu.position.set(-2, 0.85, 0);
+                cpu.castShadow = true;
+                computerGroup.add(cpu);
+
+                // CPU details
+                const diskSlotGeometry = new THREE.BoxGeometry(0.6, 0.05, 0.1);
+                const diskSlotMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+                const diskSlot = new THREE.Mesh(diskSlotGeometry, diskSlotMaterial);
+                diskSlot.position.set(-2, 1.2, 0.61);
+                computerGroup.add(diskSlot);
+
+                // Power button
+                const powerButtonGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.02, 8);
+                const powerButtonMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xff0000,
+                    emissive: 0x330000 
+                });
+                const powerButton = new THREE.Mesh(powerButtonGeometry, powerButtonMaterial);
+                powerButton.position.set(-2, 0.5, 0.61);
+                powerButton.rotation.x = Math.PI / 2;
+                computerGroup.add(powerButton);
+
+                computerGroup.position.y = 0.1;
+                this.computer = computerGroup;
+                this.scene.add(computerGroup);
+            }
+
+            createEnvironment() {
+                // Floor
+                const floorGeometry = new THREE.PlaneGeometry(20, 20);
+                const floorMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x333333,
+                    transparent: true,
+                    opacity: 0.8 
+                });
+                const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+                floor.rotation.x = -Math.PI / 2;
+                floor.position.y = -2;
+                floor.receiveShadow = true;
+                this.scene.add(floor);
+
+                // Background particles
+                const particlesGeometry = new THREE.BufferGeometry();
+                const particlesCount = 100;
+                const posArray = new Float32Array(particlesCount * 3);
+
+                for (let i = 0; i < particlesCount * 3; i++) {
+                    posArray[i] = (Math.random() - 0.5) * 20;
+                }
+
+                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                const particlesMaterial = new THREE.PointsMaterial({
+                    size: 0.02,
+                    color: 0x00ff41,
+                    transparent: true,
+                    opacity: 0.6
+                });
+
+                const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+                this.scene.add(particlesMesh);
+            }
+
+            setupEventListeners() {
+                window.addEventListener('resize', () => this.onWindowResize());
+                
+                document.addEventListener('keydown', (event) => {
+                    switch(event.code) {
+                        case 'Space':
+                            event.preventDefault();
+                            this.toggleAutoRotate();
+                            break;
+                        case 'KeyL':
+                            this.toggleLighting();
+                            break;
+                        case 'KeyC':
+                            this.changeColorScheme();
+                            break;
+                    }
+                });
+            }
+
+            toggleAutoRotate() {
+                this.autoRotate = !this.autoRotate;
+                this.controls.autoRotate = this.autoRotate;
+            }
+
+            toggleLighting() {
+                this.lights.forEach(light => {
+                    light.visible = !light.visible;
+                });
+            }
+
+            changeColorScheme() {
+                this.colorScheme = (this.colorScheme + 1) % 3;
+                const colors = [
+                    { bg: 0x0a0a0a, accent: 0x00ff41 },
+                    { bg: 0x1a0a2e, accent: 0xff4100 },
+                    { bg: 0x0a2e1a, accent: 0x4100ff }
+                ];
+                
+                const scheme = colors[this.colorScheme];
+                this.scene.background = new THREE.Color(scheme.bg);
+                this.scene.fog.color = new THREE.Color(scheme.bg);
+            }
+
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            updateStats() {
+                this.frameCount++;
+                const currentTime = performance.now();
+                
+                if (currentTime - this.lastTime >= 1000) {
+                    const fps = Math.round((this.frameCount * 1000) / (currentTime - this.lastTime));
+                    document.getElementById('fps').textContent = fps;
+                    this.frameCount = 0;
+                    this.lastTime = currentTime;
+                }
+
+                const objectCount = this.scene.children.length;
+                document.getElementById('objects').textContent = objectCount;
+
+                const pos = this.camera.position;
+                document.getElementById('camera-pos').textContent = 
+                    `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}`;
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                // Update controls
+                this.controls.update();
+
+                // Animate computer elements
+                if (this.computer) {
+                    const time = Date.now() * 0.001;
+                    
+                    // Subtle screen glow animation
+                    const screenGlow = this.computer.children.find(child => 
+                        child.material && child.material.transparent
+                    );
+                    if (screenGlow) {
+                        screenGlow.material.opacity = 0.1 + Math.sin(time * 2) * 0.05;
+                    }
+
+                    // Power button glow
+                    const powerButton = this.computer.children.find(child =>
+                        child.material && child.material.color && child.material.color.r > 0.5
+                    );
+                    if (powerButton) {
+                        powerButton.material.emissive.setHex(
+                            Math.sin(time * 3) > 0 ? 0x660000 : 0x330000
+                        );
+                    }
+                }
+
+                // Update stats
+                this.updateStats();
+
+                // Render
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        // Initialize the scene when the page loads
+        window.addEventListener('load', () => {
+            new RetroComputerScene();
+        });
+    </script>
+</body>
+</html>
