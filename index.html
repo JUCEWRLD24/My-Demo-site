@@ -3,14 +3,470 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruairi Lambert - Full Stack Developer</title>
-	<link rel="stylesheet" href="Stylesheet.css">
+    <title>Your Name - Full Stack Developer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #2563eb;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #2563eb;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="1" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .hero-content {
+            z-index: 2;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: slideUp 1s ease 0.5s forwards;
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: slideUp 1s ease 0.7s forwards;
+        }
+
+        .hero .description {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            opacity: 0;
+            animation: slideUp 1s ease 0.9s forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: slideUp 1s ease 1.1s forwards;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Sections */
+        section {
+            padding: 5rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2563eb;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            background: #2563eb;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* About Section */
+        .about {
+            background: #f8fafc;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-image {
+            text-align: center;
+        }
+
+        .profile-pic {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+            margin: 0 auto;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.05);
+        }
+
+        .about-text p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #64748b;
+        }
+
+        /* Skills Section */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .skill-category {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .skill-category:hover {
+            transform: translateY(-5px);
+        }
+
+        .skill-category h3 {
+            color: #2563eb;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .skill-item {
+            margin-bottom: 1rem;
+        }
+
+        .skill-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            border-radius: 4px;
+            transition: width 2s ease;
+            width: 0;
+        }
+
+        /* Projects Section */
+        .projects {
+            background: #f8fafc;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .project-image {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            position: relative;
+        }
+
+        /* 3D Scene Styles */
+        .threejs-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            overflow: hidden;
+        }
+
+        .threejs-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff41;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .project-content {
+            padding: 1.5rem;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #2563eb;
+        }
+
+        .project-description {
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-tag {
+            background: #e2e8f0;
+            color: #475569;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .project-link:hover {
+            color: #1d4ed8;
+        }
+
+        /* Contact Section */
+        .contact {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .contact-content {
+            text-align: center;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .contact-item a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .contact-item a:hover {
+            opacity: 0.8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .contact-info {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav id="navbar">
         <div class="nav-container">
-            <div class="logo">Ruairi</div>
+            <div class="logo">Your Name</div>
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About</a></li>
@@ -24,7 +480,7 @@
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
-            <h1>Hi, I'm Ruairi</h1>
+            <h1>Hi, I'm Your Name</h1>
             <p class="subtitle">Full Stack Developer & Problem Solver</p>
             <p class="description">
                 I create beautiful, responsive web applications using modern technologies. 
@@ -141,11 +597,11 @@
                     </div>
                     <div class="skill-item">
                         <div class="skill-name">
-                            <span>Docker</span>
-                            <span>65%</span>
+                            <span>Three.js/WebGL</span>
+                            <span>75%</span>
                         </div>
                         <div class="skill-bar">
-                            <div class="skill-progress" data-width="65"></div>
+                            <div class="skill-progress" data-width="75"></div>
                         </div>
                     </div>
                     <div class="skill-item">
@@ -167,22 +623,27 @@
         <div class="container">
             <h2 class="section-title fade-in">Featured Projects</h2>
             <div class="projects-grid fade-in">
+                <!-- 3D Retro Computer Project -->
                 <div class="project-card">
-                    <div class="project-image">🚀</div>
+                    <div class="threejs-container" id="retro-computer-scene">
+                        <div class="threejs-overlay">
+                            🖱️ Drag to rotate • 🔄 Scroll to zoom
+                        </div>
+                    </div>
                     <div class="project-content">
-                        <h3 class="project-title">E-Commerce Platform</h3>
+                        <h3 class="project-title">3D Retro Computer Scene</h3>
                         <p class="project-description">
-                            A full-stack e-commerce solution with user authentication, 
-                            payment processing, and admin dashboard.
+                            An interactive 3D scene featuring a detailed retro computer setup. 
+                            Built with Three.js, showcasing advanced WebGL programming and 3D modeling skills.
                         </p>
                         <div class="project-tech">
-                            <span class="tech-tag">React</span>
-                            <span class="tech-tag">Node.js</span>
-                            <span class="tech-tag">MongoDB</span>
-                            <span class="tech-tag">Stripe</span>
+                            <span class="tech-tag">Three.js</span>
+                            <span class="tech-tag">WebGL</span>
+                            <span class="tech-tag">JavaScript</span>
+                            <span class="tech-tag">3D Graphics</span>
                         </div>
                         <div class="project-links">
-                            <a href="#" class="project-link">Live Demo</a>
+                            <a href="#" class="project-link">View Full Scene</a>
                             <a href="#" class="project-link">GitHub</a>
                         </div>
                     </div>
@@ -264,7 +725,180 @@
         </div>
     </section>
 
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
     <script>
+        // 3D Scene Class for the embedded project
+        class EmbeddedRetroScene {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.controls = null;
+                this.computer = null;
+                this.isVisible = false;
+                
+                this.init();
+            }
+
+            init() {
+                if (!this.container) return;
+                
+                this.createScene();
+                this.createCamera();
+                this.createRenderer();
+                this.createControls();
+                this.createLights();
+                this.createComputer();
+                this.setupIntersectionObserver();
+                this.animate();
+            }
+
+            createScene() {
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x0a0a0a);
+            }
+
+            createCamera() {
+                const aspect = this.container.clientWidth / this.container.clientHeight;
+                this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+                this.camera.position.set(3, 2, 3);
+            }
+
+            createRenderer() {
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.container.appendChild(this.renderer.domElement);
+            }
+
+            createControls() {
+                this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+                this.controls.minDistance = 2;
+                this.controls.maxDistance = 8;
+                this.controls.autoRotate = true;
+                this.controls.autoRotateSpeed = 1;
+            }
+
+            createLights() {
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+                this.scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(3, 5, 3);
+                directionalLight.castShadow = true;
+                this.scene.add(directionalLight);
+
+                const accentLight = new THREE.PointLight(0x00ff41, 0.5, 10);
+                accentLight.position.set(-2, 1, 2);
+                this.scene.add(accentLight);
+            }
+
+            createComputer() {
+                const computerGroup = new THREE.Group();
+
+                // Monitor
+                const monitorGeometry = new THREE.BoxGeometry(1.5, 1.2, 1.5);
+                const monitorMaterial = new THREE.MeshPhongMaterial({ color: 0xf0f0f0 });
+                const monitor = new THREE.Mesh(monitorGeometry, monitorMaterial);
+                monitor.position.set(0, 0.8, 0);
+                monitor.castShadow = true;
+                computerGroup.add(monitor);
+
+                // Screen
+                const screenGeometry = new THREE.BoxGeometry(1.3, 1, 0.05);
+                const screenMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x001100,
+                    emissive: 0x002200 
+                });
+                const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+                screen.position.set(0, 0.8, 0.75);
+                computerGroup.add(screen);
+
+                // Keyboard
+                const keyboardGeometry = new THREE.BoxGeometry(1.2, 0.08, 0.4);
+                const keyboardMaterial = new THREE.MeshPhongMaterial({ color: 0xe0e0e0 });
+                const keyboard = new THREE.Mesh(keyboardGeometry, keyboardMaterial);
+                keyboard.position.set(0, 0.04, 1);
+                keyboard.castShadow = true;
+                computerGroup.add(keyboard);
+
+                // CPU
+                const cpuGeometry = new THREE.BoxGeometry(0.6, 1, 0.8);
+                const cpuMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+                const cpu = new THREE.Mesh(cpuGeometry, cpuMaterial);
+                cpu.position.set(-1.2, 0.5, 0);
+                cpu.castShadow = true;
+                computerGroup.add(cpu);
+
+                // Desk
+                const deskGeometry = new THREE.BoxGeometry(4, 0.1, 2.5);
+                const deskMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                const desk = new THREE.Mesh(deskGeometry, deskMaterial);
+                desk.position.set(0, -0.05, 0);
+                desk.receiveShadow = true;
+                computerGroup.add(desk);
+
+                this.computer = computerGroup;
+                this.scene.add(computerGroup);
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        this.isVisible = entry.isIntersecting;
+                        if (this.controls) {
+                            this.controls.autoRotate = this.isVisible;
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                observer.observe(this.container);
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                if (this.isVisible) {
+                    this.controls.update();
+                    
+                    // Animate screen glow
+                    if (this.computer) {
+                        const time = Date.now() * 0.001;
+                        const screen = this.computer.children.find(child => 
+                            child.material && child.material.emissive
+                        );
+                        if (screen) {
+                            const intensity = 0.002 + Math.sin(time * 2) * 0.001;
+                            screen.material.emissive.setHex(0x002200 * (1 + intensity));
+                        }
+                    }
+                    
+                    this.renderer.render(this.scene, this.camera);
+                }
+            }
+
+            onWindowResize() {
+                if (!this.container) return;
+                
+                const width = this.container.clientWidth;
+                const height = this.container.clientHeight;
+                
+                this.camera.aspect = width / height;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(width, height);
+            }
+        }
+
+        // Main page JavaScript
+        let retroScene = null;
+
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -304,6 +938,13 @@
                     if (entry.target.classList.contains('skills-grid')) {
                         animateSkillBars();
                     }
+                    
+                    // Initialize 3D scene when projects section is visible
+                    if (entry.target.classList.contains('projects-grid') && !retroScene) {
+                        setTimeout(() => {
+                            retroScene = new EmbeddedRetroScene('retro-computer-scene');
+                        }, 500);
+                    }
                 }
             });
         }, observerOptions);
@@ -327,11 +968,15 @@
         // Add some interactive hover effects
         document.querySelectorAll('.project-card, .skill-category').forEach(card => {
             card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px) scale(1.02)';
+                if (!this.querySelector('.threejs-container')) {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                }
             });
             
             card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
+                if (!this.querySelector('.threejs-container')) {
+                    this.style.transform = 'translateY(0) scale(1)';
+                }
             });
         });
 
@@ -358,6 +1003,13 @@
                 const originalText = subtitle.textContent;
                 typeWriter(subtitle, originalText, 80);
             }, 1500);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (retroScene) {
+                retroScene.onWindowResize();
+            }
         });
 
         // Add parallax effect to hero section
